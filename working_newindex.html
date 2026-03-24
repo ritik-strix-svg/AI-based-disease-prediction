@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedPredict — AI Health Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#06090f;--bg2:#0c1220;--bg3:#111827;--card:#131c2e;
+    --border:rgba(99,179,237,0.12);--accent:#38bdf8;--accent2:#f472b6;
+    --accent3:#34d399;--danger:#ef4444;--text:#e2e8f0;--muted:#64748b;
+    --sidebar-w:240px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+  #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:16px;}
+  .auth-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(56,189,248,.08) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(244,114,182,.06) 0%,transparent 60%);}
+  .grid-lines{position:absolute;inset:0;background-image:linear-gradient(rgba(56,189,248,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.04) 1px,transparent 1px);background-size:60px 60px;}
+  .auth-card{position:relative;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 36px;width:100%;max-width:420px;box-shadow:0 0 60px rgba(56,189,248,.06),0 24px 64px rgba(0,0,0,.5);animation:slideUp .6s cubic-bezier(.16,1,.3,1) both;}
+  @keyframes slideUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+  .logo{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+  .logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .logo-text{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;}
+  .logo-text span{color:var(--accent);}
+  .auth-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;margin-bottom:4px;}
+  .auth-sub{color:var(--muted);font-size:14px;margin-bottom:24px;}
+  .tabs{display:flex;gap:4px;background:var(--bg2);border-radius:12px;padding:4px;margin-bottom:24px;}
+  .tab-btn{flex:1;padding:9px;border:none;background:none;border-radius:9px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;}
+  .tab-btn.active{background:var(--bg3);color:var(--text);}
+  .form-group{margin-bottom:14px;}
+  .form-group label{display:block;font-size:13px;font-weight:500;color:var(--muted);margin-bottom:6px;}
+  .form-group input,.form-group select{width:100%;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:16px;outline:none;transition:border-color .2s;}
+  .form-group input:focus,.form-group select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(56,189,248,.1);}
+  .form-group select option{background:var(--bg2);}
+  .btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border:none;border-radius:12px;color:#fff;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;}
+  #auth-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:10px 14px;color:#fca5a5;font-size:13px;margin-bottom:14px;display:none;}
+  #app{display:none;min-height:100vh;}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:200;transition:transform .3s cubic-bezier(.16,1,.3,1);}
+  .sidebar-logo{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .sidebar-logo-left{display:flex;align-items:center;gap:10px;}
+  .sidebar-logo .logo-icon{width:34px;height:34px;font-size:15px;border-radius:10px;}
+  .sidebar-logo .logo-text{font-size:17px;}
+  .sidebar-close{display:none;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;}
+  .sidebar-nav{flex:1;padding:14px 10px;overflow-y:auto;}
+  .nav-section{margin-bottom:20px;}
+  .nav-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:0 8px;margin-bottom:6px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;color:var(--muted);font-size:14px;font-weight:500;cursor:pointer;transition:all .18s;margin-bottom:2px;border:1px solid transparent;}
+  .nav-item:hover{background:var(--bg2);color:var(--text);}
+  .nav-item.active{background:rgba(56,189,248,.1);color:var(--accent);border-color:rgba(56,189,248,.2);}
+  .nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+  .sidebar-footer{padding:14px 10px;border-top:1px solid var(--border);}
+  .user-chip{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:var(--bg2);margin-bottom:10px;}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#6366f1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;flex-shrink:0;}
+  .user-info .name{font-size:13px;font-weight:600;}
+  .role-badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;background:rgba(56,189,248,.15);color:var(--accent);display:inline-block;}
+  .role-badge.admin-badge{background:rgba(244,114,182,.15);color:var(--accent2);}
+  .btn-logout{width:100%;padding:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:10px;color:#f87171;font-size:13px;font-weight:500;cursor:pointer;}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;}
+  .sidebar-overlay.show{display:block;}
+  .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:150;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 11px;color:var(--text);font-size:18px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);}
+  .main-content{margin-left:var(--sidebar-w);min-height:100vh;padding:32px;}
+  .page{display:none;animation:fadeIn .3s ease both;}
+  .page.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .page-header{margin-bottom:28px;}
+  .page-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:4px;}
+  .page-sub{color:var(--muted);font-size:14px;}
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+  .admin-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;position:relative;overflow:hidden;}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);}
+  .stat-card.pink::before{background:linear-gradient(90deg,var(--accent2),transparent);}
+  .stat-card.green::before{background:linear-gradient(90deg,var(--accent3),transparent);}
+  .stat-label{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:6px;}
+  .stat-value{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;}
+  .stat-icon{position:absolute;right:16px;top:16px;font-size:24px;opacity:.15;}
+  .predict-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .predict-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;}
+  .predict-card-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+  .predict-card-icon{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .predict-card-icon.blue{background:rgba(56,189,248,.12);}
+  .predict-card-icon.pink{background:rgba(244,114,182,.12);}
+  .predict-card-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;}
+  .predict-card-sub{font-size:12px;color:var(--muted);}
+  .input-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .input-group label{font-size:11px;color:var(--muted);font-weight:500;display:block;margin-bottom:4px;}
+  .input-group input,.input-group select{width:100%;padding:10px 11px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;}
+  .input-group input:focus,.input-group select:focus{border-color:var(--accent);}
+  .input-group select option{background:var(--bg2);color:var(--text);}
+  .btn-predict{width:100%;padding:13px;border:none;border-radius:12px;cursor:pointer;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;transition:opacity .2s;}
+  .btn-predict.blue{background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;}
+  .btn-predict.pink{background:linear-gradient(135deg,#f472b6,#db2777);color:white;}
+  .btn-predict:disabled{opacity:.6;cursor:not-allowed;}
+  .table-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+  .table-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .table-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+  .table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;min-width:400px;}
+  th{padding:11px 16px;text-align:left;font-size:10px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(99,179,237,.05);}
+  tr:last-child td{border:none;}
+  .badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+  .badge-pos{background:rgba(239,68,68,.15);color:#f87171;}
+  .badge-neg{background:rgba(52,211,153,.15);color:var(--accent3);}
+  .badge-diabetes{background:rgba(56,189,248,.15);color:var(--accent);}
+  .badge-heart{background:rgba(244,114,182,.15);color:var(--accent2);}
+  .badge-admin{background:rgba(244,114,182,.15);color:var(--accent2);}
+  .badge-user{background:rgba(56,189,248,.15);color:var(--accent);}
+  .btn-delete{padding:5px 11px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;color:#f87171;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .btn-delete:disabled{opacity:.4;cursor:not-allowed;}
+  .mini-stats{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .mini-stat{font-size:11px;padding:2px 7px;border-radius:20px;font-weight:600;}
+  .mini-stat.d{background:rgba(56,189,248,.1);color:var(--accent);}
+  .mini-stat.h{background:rgba(244,114,182,.1);color:var(--accent2);}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty-icon{font-size:36px;margin-bottom:12px;opacity:.4;}
+  .loading-spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .toast{position:fixed;bottom:20px;right:20px;left:20px;max-width:340px;margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 16px;font-size:14px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none;text-align:center;}
+  .toast.show{display:block;}
+  .toast.success{border-color:rgba(52,211,153,.4);color:var(--accent3);}
+  .toast.error{border-color:rgba(239,68,68,.4);color:#f87171;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.5);}
+  .modal-icon{font-size:36px;text-align:center;margin-bottom:14px;}
+  .modal-title{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;text-align:center;margin-bottom:8px;}
+  .modal-msg{color:var(--muted);font-size:14px;text-align:center;margin-bottom:22px;line-height:1.6;}
+  .modal-btns{display:flex;gap:10px;}
+  .modal-btns button{flex:1;padding:11px;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;}
+  .btn-cancel-modal{background:var(--bg2);color:var(--muted);}
+  .btn-confirm-modal{background:linear-gradient(135deg,#ef4444,#dc2626);color:white;}
+  .welcome-banner{background:linear-gradient(135deg,rgba(14,165,233,.12),rgba(99,102,241,.08));border:1px solid rgba(56,189,248,.2);border-radius:18px;padding:24px 28px;margin-bottom:24px;position:relative;overflow:hidden;}
+  .welcome-banner::after{content:'🏥';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:48px;opacity:.12;}
+  .welcome-greeting{font-size:12px;color:var(--accent);font-weight:500;margin-bottom:4px;}
+  .welcome-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;}
+  .welcome-sub{color:var(--muted);font-size:13px;}
+  .section-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:14px;}
+  .hint{margin-top:16px;padding:12px 16px;border-radius:10px;font-size:13px;color:var(--muted);}
+  .hint.blue-hint{background:rgba(56,189,248,.05);border:1px solid rgba(56,189,248,.1);}
+  .hint.pink-hint{background:rgba(244,114,182,.05);border:1px solid rgba(244,114,182,.1);}
+
+  /* ── Result Page Styles ─────────────────────────────── */
+  .result-page-card{max-width:560px;margin:0 auto;}
+  .result-hero{text-align:center;padding:40px 24px 32px;background:var(--card);border:1px solid var(--border);border-radius:24px;margin-bottom:20px;position:relative;overflow:hidden;}
+  .result-hero::before{content:'';position:absolute;inset:0;opacity:.06;border-radius:24px;}
+  .result-hero.positive::before{background:var(--danger);}
+  .result-hero.negative::before{background:var(--accent3);}
+  .result-hero-icon{font-size:64px;margin-bottom:16px;display:block;}
+  .result-hero-label{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
+  .result-hero-value{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;margin-bottom:8px;}
+  .result-hero-value.pos{color:var(--danger);}
+  .result-hero-value.neg{color:var(--accent3);}
+  .result-hero-sub{color:var(--muted);font-size:14px;}
+  .result-prob-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 24px;margin-bottom:20px;}
+  .result-prob-label{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:10px;}
+  .result-prob-bar{height:10px;background:var(--bg2);border-radius:5px;overflow:hidden;margin-bottom:8px;}
+  .result-prob-fill{height:100%;border-radius:5px;transition:width 1s cubic-bezier(.16,1,.3,1);}
+  .result-prob-pct{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:4px;}
+  .result-prob-note{font-size:12px;color:var(--muted);}
+  .result-actions{display:flex;gap:12px;margin-bottom:20px;}
+  .btn-action{flex:1;padding:13px;border:none;border-radius:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;}
+  .btn-action.primary{background:linear-gradient(135deg,#0ea5e9,#6366f1);color:white;}
+  .btn-action.secondary{background:var(--bg2);color:var(--text);border:1px solid var(--border);}
+  .result-disclaimer{padding:14px 16px;background:rgba(56,189,248,.04);border:1px solid rgba(56,189,248,.1);border-radius:12px;font-size:12px;color:var(--muted);text-align:center;}
+
+  @media(max-width:900px){.admin-stats-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:768px){
+    .hamburger{display:flex;align-items:center;justify-content:center;}
+    .sidebar{transform:translateX(-100%);}
+    .sidebar.open{transform:translateX(0);}
+    .sidebar-close{display:block;}
+    .main-content{margin-left:0;padding:20px 16px;padding-top:64px;}
+    .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+    .admin-stats-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+    .predict-grid{grid-template-columns:1fr;}
+    .input-grid{grid-template-columns:1fr;}
+    .page-title{font-size:22px;}
+    .stat-value{font-size:24px;}
+    .predict-card{padding:18px;}
+    .auth-card{padding:28px 20px;}
+    .result-actions{flex-direction:column;}
+  }
+  @media(max-width:480px){
+    .stats-grid{grid-template-columns:1fr;}
+    .admin-stats-grid{grid-template-columns:1fr;}
+    .main-content{padding:16px 12px;padding-top:60px;}
+    .page-title{font-size:20px;}
+    th,td{padding:10px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-bg"></div><div class="grid-lines"></div>
+  <div class="auth-card">
+    <div class="logo"><div class="logo-icon">🧬</div><div class="logo-text">Med<span>Predict</span></div></div>
+    <h2 class="auth-title">Health Intelligence</h2>
+    <p class="auth-sub">AI-powered disease prediction platform</p>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div id="auth-error"></div>
+    <div id="login-form">
+      <div class="form-group"><label>Username</label><input type="text" id="login-username" placeholder="Enter your username"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="Enter your password"></div>
+      <button type="button" class="btn-primary" onclick="handleLogin()">Sign In →</button>
+    </div>
+    <div id="signup-form" style="display:none">
+      <div class="form-group"><label>Username</label><input type="text" id="signup-username" placeholder="Choose a username"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="signup-password" placeholder="Create a password"></div>
+      <div class="form-group"><label>Role</label>
+        <select id="signup-role" onchange="toggleAdminField()">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group" id="admin-key-field" style="display:none"><label>Admin Key</label><input type="password" id="admin-key" placeholder="Enter admin key"></div>
+      <button type="button" class="btn-primary" onclick="handleSignup()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <button type="button" class="hamburger" onclick="openSidebar()">☰</button>
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-left">
+        <div class="logo-icon">🧬</div>
+        <div class="logo-text">Med<span>Predict</span></div>
+      </div>
+      <button type="button" class="sidebar-close" onclick="closeSidebar()">✕</button>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section" id="user-nav">
+        <div class="nav-label">Dashboard</div>
+        <div class="nav-item" onclick="showPage('overview')"><span class="nav-icon">🏠</span> Overview</div>
+        <div class="nav-label" style="margin-top:14px">Predictions</div>
+        <div class="nav-item" onclick="showPage('diabetes')"><span class="nav-icon">🩸</span> Diabetes Check</div>
+        <div class="nav-item" onclick="showPage('heart')"><span class="nav-icon">❤️</span> Heart Disease</div>
+        <div class="nav-label" style="margin-top:14px">Records</div>
+        <div class="nav-item" onclick="showPage('history')"><span class="nav-icon">📋</span> My History</div>
+      </div>
+      <div class="nav-section" id="admin-nav" style="display:none">
+        <div class="nav-label">Admin Panel</div>
+        <div class="nav-item" onclick="showPage('admin-overview')"><span class="nav-icon">📊</span> Dashboard</div>
+        <div class="nav-item" onclick="showPage('admin-users')"><span class="nav-icon">👥</span> Manage Users</div>
+        <div class="nav-item" onclick="showPage('admin-history')"><span class="nav-icon">🗂️</span> All Predictions</div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="avatar" id="sidebar-avatar">U</div>
+        <div class="user-info">
+          <div class="name" id="sidebar-username">User</div>
+          <span class="role-badge" id="sidebar-role">user</span>
+        </div>
+      </div>
+      <button type="button" class="btn-logout" onclick="logout()">← Sign Out</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- OVERVIEW PAGE -->
+    <div class="page" id="page-overview">
+      <div class="page-header"><p class="page-title">Overview</p><p class="page-sub">Your health intelligence hub</p></div>
+      <div class="welcome-banner">
+        <div class="welcome-greeting">Welcome back,</div>
+        <div class="welcome-title" id="overview-username">User</div>
+        <div class="welcome-sub">Stay on top of your health with AI-powered predictions.</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Predictions</div><div class="stat-value" id="stat-total">—</div><div class="stat-icon">🔬</div></div>
+        <div class="stat-card pink"><div class="stat-label">Diabetes Tests</div><div class="stat-value" id="stat-diabetes">—</div><div class="stat-icon">🩸</div></div>
+        <div class="stat-card green"><div class="stat-label">Heart Tests</div><div class="stat-value" id="stat-heart">—</div><div class="stat-icon">❤️</div></div>
+      </div>
+      <p class="section-title">Quick Actions</p>
+      <div class="predict-grid">
+        <div class="predict-card" style="cursor:pointer" onclick="showPage('diabetes')">
+          <div class="predict-card-header"><div class="predict-card-icon blue">🩸</div><div><div class="predict-card-title">Diabetes Screening</div><div class="predict-card-sub">8 clinical biomarkers</div></div></div>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6">Analyze glucose, BMI, insulin and other indicators.</p>
+          <div style="margin-top:14px;color:var(--accent);font-size:13px;font-weight:600">Run Test →</div>
+        </div>
+        <div class="predict-card" style="cursor:pointer" onclick="showPage('heart')">
+          <div class="predict-card-header"><div class="predict-card-icon pink">❤️</div><div><div class="predict-card-title">Heart Disease Check</div><div class="predict-card-sub">11 cardiovascular markers</div></div></div>
+          <p style="color:var(--muted);font-size:14px;line-height:1.6">Evaluate ECG, cholesterol and blood pressure indicators.</p>
+          <div style="margin-top:14px;color:var(--accent2);font-size:13px;font-weight:600">Run Test →</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIABETES FORM PAGE -->
+    <div class="page" id="page-diabetes">
+      <div class="page-header"><p class="page-title">🩸 Diabetes Screening</p><p class="page-sub">Enter clinical values for AI risk assessment</p></div>
+      <div class="predict-card" style="max-width:680px">
+        <div class="input-grid">
+          <div class="input-group"><label>Pregnancies</label><input type="number" id="d-preg" placeholder="e.g. 2" min="0"></div>
+          <div class="input-group"><label>Glucose (mg/dL)</label><input type="number" id="d-glucose" placeholder="e.g. 120"></div>
+          <div class="input-group"><label>Blood Pressure (mmHg)</label><input type="number" id="d-bp" placeholder="e.g. 70"></div>
+          <div class="input-group"><label>Skin Thickness (mm)</label><input type="number" id="d-skin" placeholder="e.g. 20"></div>
+          <div class="input-group"><label>Insulin (μU/mL)</label><input type="number" id="d-insulin" placeholder="e.g. 79"></div>
+          <div class="input-group"><label>BMI</label><input type="number" id="d-bmi" placeholder="e.g. 25.5" step="0.1"></div>
+          <div class="input-group"><label>Diabetes Pedigree</label><input type="number" id="d-dpf" placeholder="e.g. 0.47" step="0.01"></div>
+          <div class="input-group"><label>Age</label><input type="number" id="d-age" placeholder="e.g. 30"></div>
+        </div>
+        <button type="button" class="btn-predict blue" id="d-btn"><span id="d-btn-text">Analyze Risk →</span></button>
+      </div>
+      <div class="hint blue-hint">⚠️ For informational purposes only. Always consult a qualified healthcare professional.</div>
+    </div>
+
+    <!-- HEART FORM PAGE -->
+    <div class="page" id="page-heart">
+      <div class="page-header"><p class="page-title">❤️ Heart Disease Check</p><p class="page-sub">Cardiovascular risk using 11 clinical indicators</p></div>
+      <div class="predict-card" style="max-width:680px">
+        <div class="input-grid">
+          <div class="input-group"><label>Age</label><input type="number" id="h-age" placeholder="e.g. 45"></div>
+          <div class="input-group"><label>Sex</label><select id="h-sex"><option value="M">Male (M)</option><option value="F">Female (F)</option></select></div>
+          <div class="input-group"><label>Chest Pain Type</label><select id="h-cp"><option value="ASY">ASY – Asymptomatic</option><option value="ATA">ATA – Atypical Angina</option><option value="NAP">NAP – Non-Anginal Pain</option><option value="TA">TA – Typical Angina</option></select></div>
+          <div class="input-group"><label>Resting BP (mmHg)</label><input type="number" id="h-rbp" placeholder="e.g. 130"></div>
+          <div class="input-group"><label>Cholesterol (mg/dL)</label><input type="number" id="h-chol" placeholder="e.g. 200"></div>
+          <div class="input-group"><label>Fasting BS &gt;120?</label><select id="h-fbs"><option value="0">No (0)</option><option value="1">Yes (1)</option></select></div>
+          <div class="input-group"><label>Resting ECG</label><select id="h-ecg"><option value="Normal">Normal</option><option value="LVH">LVH</option><option value="ST">ST Abnormality</option></select></div>
+          <div class="input-group"><label>Max Heart Rate</label><input type="number" id="h-hr" placeholder="e.g. 150"></div>
+          <div class="input-group"><label>Exercise Angina</label><select id="h-angina"><option value="N">No (N)</option><option value="Y">Yes (Y)</option></select></div>
+          <div class="input-group"><label>Oldpeak (ST Depression)</label><input type="number" id="h-oldpeak" placeholder="e.g. 1.2" step="0.1"></div>
+          <div class="input-group"><label>ST Slope</label><select id="h-slope"><option value="Up">Up</option><option value="Flat">Flat</option><option value="Down">Down</option></select></div>
+        </div>
+        <button type="button" class="btn-predict pink" id="h-btn"><span id="h-btn-text">Analyze Risk →</span></button>
+      </div>
+      <div class="hint pink-hint">⚠️ For informational purposes only. Always consult a qualified healthcare professional.</div>
+    </div>
+
+    <!-- RESULT PAGE — shown after prediction -->
+    <div class="page" id="page-result">
+      <div class="page-header"><p class="page-title" id="result-page-title">Analysis Result</p><p class="page-sub" id="result-page-sub">AI risk assessment complete</p></div>
+      <div class="result-page-card">
+        <div class="result-hero" id="result-hero">
+          <span class="result-hero-icon" id="result-icon">🔬</span>
+          <div class="result-hero-label">Prediction Result</div>
+          <div class="result-hero-value" id="result-value"></div>
+          <div class="result-hero-sub" id="result-sub"></div>
+        </div>
+        <div class="result-prob-section">
+          <div class="result-prob-label">Model Confidence</div>
+          <div class="result-prob-pct" id="result-pct"></div>
+          <div class="result-prob-bar"><div class="result-prob-fill" id="result-fill"></div></div>
+          <div class="result-prob-note">Based on the clinical values you entered</div>
+        </div>
+        <div class="result-actions">
+          <button type="button" class="btn-action secondary" id="result-back-btn">← Run Again</button>
+          <button type="button" class="btn-action primary" onclick="showPage('history')">View History →</button>
+        </div>
+        <div class="result-disclaimer">⚠️ For informational purposes only. Always consult a qualified healthcare professional before making any health decisions.</div>
+      </div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div class="page" id="page-history">
+      <div class="page-header"><p class="page-title">📋 My History</p><p class="page-sub">All your past predictions</p></div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Prediction Log</div></div>
+        <div class="table-wrap" id="history-table-wrap"><div class="empty-state"><div class="loading-spinner"></div></div></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-admin-overview">
+      <div class="page-header"><p class="page-title">📊 Admin Dashboard</p><p class="page-sub">Platform-wide analytics</p></div>
+      <div class="admin-stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Predictions</div><div class="stat-value" id="a-stat-total">—</div><div class="stat-icon">🔬</div></div>
+        <div class="stat-card pink"><div class="stat-label">Registered Users</div><div class="stat-value" id="a-stat-users">—</div><div class="stat-icon">👥</div></div>
+        <div class="stat-card"><div class="stat-label">Diabetes Tests</div><div class="stat-value" id="a-stat-diabetes">—</div><div class="stat-icon">🩸</div></div>
+        <div class="stat-card green"><div class="stat-label">Heart Tests</div><div class="stat-value" id="a-stat-heart">—</div><div class="stat-icon">❤️</div></div>
+      </div>
+      <p class="section-title">Recent Predictions</p>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Latest Activity</div></div>
+        <div class="table-wrap" id="admin-table-wrap"><div class="empty-state"><div class="loading-spinner"></div></div></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-admin-users">
+      <div class="page-header"><p class="page-title">👥 Manage Users</p><p class="page-sub">View, monitor and manage all accounts</p></div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">All Users</div><span id="users-count" style="font-size:13px;color:var(--muted)"></span></div>
+        <div class="table-wrap" id="users-table-wrap"><div class="empty-state"><div class="loading-spinner"></div></div></div>
+      </div>
+    </div>
+
+    <div class="page" id="page-admin-history">
+      <div class="page-header"><p class="page-title">🗂️ All Predictions</p><p class="page-sub">Complete prediction history for all users</p></div>
+      <div class="table-card">
+        <div class="table-header"><div class="table-title">Full Log</div></div>
+        <div class="table-wrap" id="admin-full-table-wrap"><div class="empty-state"><div class="loading-spinner"></div></div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">Delete User</div>
+    <div class="modal-msg" id="modal-msg">Are you sure?</div>
+    <div class="modal-btns">
+      <button type="button" class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+      <button type="button" class="btn-confirm-modal" id="modal-confirm-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+const API = 'http://127.0.0.1:5000';
+let token = null;
+let currentUser = null;
+let lastPredictPage = 'diabetes'; // which form to go back to from result page
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('d-btn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    predictDiabetes();
+  });
+  document.getElementById('h-btn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    predictHeart();
+  });
+});
+
+// ── Session restore ───────────────────────────────────────────────────────────
+(function restoreSession() {
+  const t = localStorage.getItem('mp_token');
+  const u = localStorage.getItem('mp_user');
+  if (t && u) {
+    token = t;
+    currentUser = JSON.parse(u);
+    setupUI();
+    showAppShell();
+    if (currentUser.role === 'admin') showPage('admin-overview');
+    else showPage('overview');
+  }
+})();
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.add('show'); document.body.style.overflow='hidden'; }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('show'); document.body.style.overflow=''; }
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => { t.className = 'toast'; }, 3000);
+}
+
+// ── Auth helpers ──────────────────────────────────────────────────────────────
+function showError(msg) { const el = document.getElementById('auth-error'); el.textContent = msg; el.style.display = 'block'; }
+function clearError()   { document.getElementById('auth-error').style.display = 'none'; }
+function switchTab(tab) {
+  clearError();
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='signup')));
+  document.getElementById('login-form').style.display  = tab==='login'  ? '' : 'none';
+  document.getElementById('signup-form').style.display = tab==='signup' ? '' : 'none';
+}
+function toggleAdminField() {
+  document.getElementById('admin-key-field').style.display = document.getElementById('signup-role').value==='admin' ? '' : 'none';
+}
+
+// ── Login / Signup ────────────────────────────────────────────────────────────
+async function handleLogin() {
+  clearError();
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!username || !password) { showError('Please fill in all fields.'); return; }
+  try {
+    const res  = await fetch(`${API}/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, password}) });
+    const data = await res.json();
+    if (!res.ok) { showError(data.error || 'Login failed'); return; }
+    token = data.token;
+    currentUser = { username, role: data.role };
+    localStorage.setItem('mp_token', token);
+    localStorage.setItem('mp_user', JSON.stringify(currentUser));
+    setupUI(); showAppShell();
+    if (currentUser.role === 'admin') showPage('admin-overview');
+    else showPage('overview');
+  } catch(e) { showError('Cannot connect to server. Make sure Flask is running on port 5000.'); }
+}
+
+async function handleSignup() {
+  clearError();
+  const username  = document.getElementById('signup-username').value.trim();
+  const password  = document.getElementById('signup-password').value;
+  const role      = document.getElementById('signup-role').value;
+  const admin_key = document.getElementById('admin-key').value;
+  if (!username || !password) { showError('Please fill in all fields.'); return; }
+  try {
+    const res  = await fetch(`${API}/signup`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, password, role, admin_key}) });
+    const data = await res.json();
+    if (!res.ok) { showError(data.error || 'Signup failed'); return; }
+    showToast('Account created! Please sign in.'); switchTab('login');
+  } catch(e) { showError('Cannot connect to server.'); }
+}
+
+function logout() {
+  token = null; currentUser = null;
+  localStorage.removeItem('mp_token');
+  localStorage.removeItem('mp_user');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  closeSidebar();
+}
+
+// ── UI setup ──────────────────────────────────────────────────────────────────
+function setupUI() {
+  document.getElementById('sidebar-avatar').textContent   = currentUser.username.charAt(0).toUpperCase();
+  document.getElementById('sidebar-username').textContent  = currentUser.username;
+  document.getElementById('overview-username').textContent = currentUser.username;
+  const rb = document.getElementById('sidebar-role');
+  rb.textContent = currentUser.role;
+  rb.className = 'role-badge' + (currentUser.role==='admin' ? ' admin-badge' : '');
+  document.getElementById('user-nav').style.display  = currentUser.role==='admin' ? 'none'  : 'block';
+  document.getElementById('admin-nav').style.display = currentUser.role==='admin' ? 'block' : 'none';
+}
+
+function showAppShell() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    const match = (n.getAttribute('onclick') || '').match(/showPage\('([^']+)'\)/);
+    if (match && match[1] === id) n.classList.add('active');
+  });
+  if (id === 'overview')       loadOverviewStats();
+  if (id === 'history')        loadUserHistory();
+  if (id === 'admin-overview') loadAdminOverview();
+  if (id === 'admin-users')    loadAdminUsers();
+  if (id === 'admin-history')  loadAdminHistory();
+  closeSidebar();
+}
+
+// ── Show Result Page ──────────────────────────────────────────────────────────
+function showResultPage(prediction, probability, diseaseType) {
+  const isPos = prediction === 1;
+  const pct   = (probability * 100).toFixed(1);
+
+  // Header
+  document.getElementById('result-page-title').textContent = diseaseType === 'diabetes' ? '🩸 Diabetes Result' : '❤️ Heart Disease Result';
+  document.getElementById('result-page-sub').textContent   = 'AI risk assessment complete';
+
+  // Hero card
+  const hero = document.getElementById('result-hero');
+  hero.className = 'result-hero ' + (isPos ? 'positive' : 'negative');
+  document.getElementById('result-icon').textContent  = isPos ? '⚠️' : '✅';
+  const val = document.getElementById('result-value');
+  val.textContent = isPos ? 'Positive Risk Detected' : 'No Risk Detected';
+  val.className   = 'result-hero-value ' + (isPos ? 'pos' : 'neg');
+  document.getElementById('result-sub').textContent   = isPos
+    ? 'The model detected indicators associated with elevated risk.'
+    : 'The model found no significant risk indicators in your data.';
+
+  // Confidence bar
+  document.getElementById('result-pct').textContent        = pct + '%';
+  document.getElementById('result-pct').style.color        = isPos ? 'var(--danger)' : 'var(--accent3)';
+  const fill = document.getElementById('result-fill');
+  fill.style.background = isPos ? 'var(--danger)' : 'var(--accent3)';
+  fill.style.width = '0%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    fill.style.width = pct + '%';
+  }));
+
+  // Back button goes to the form that triggered this result
+  document.getElementById('result-back-btn').onclick = () => showPage(lastPredictPage);
+
+  // Navigate to result page
+  showPage('result');
+}
+
+// ── Overview stats ────────────────────────────────────────────────────────────
+async function loadOverviewStats() {
+  try {
+    const res  = await fetch(`${API}/history`, { headers:{Authorization:'Bearer '+token} });
+    const data = await res.json();
+    document.getElementById('stat-total').textContent    = data.length;
+    document.getElementById('stat-diabetes').textContent = data.filter(d=>d.disease==='diabetes').length;
+    document.getElementById('stat-heart').textContent    = data.filter(d=>d.disease==='heart').length;
+  } catch(e) {}
+}
+
+// ── User history ──────────────────────────────────────────────────────────────
+async function loadUserHistory() {
+  const wrap = document.getElementById('history-table-wrap');
+  wrap.innerHTML = '<div class="empty-state"><div class="loading-spinner"></div></div>';
+  try {
+    const res  = await fetch(`${API}/history`, { headers:{Authorization:'Bearer '+token} });
+    const data = await res.json();
+    if (!data.length) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><p>No predictions yet</p></div>'; return; }
+    wrap.innerHTML = `<table><thead><tr><th>Disease</th><th>Result</th><th>Probability</th><th>Date</th></tr></thead><tbody>
+      ${data.map(r=>`<tr>
+        <td><span class="badge badge-${r.disease}">${r.disease}</span></td>
+        <td><span class="badge ${r.prediction?'badge-pos':'badge-neg'}">${r.prediction?'Positive':'Negative'}</span></td>
+        <td>${probBar(r.probability,r.prediction)}</td>
+        <td style="color:var(--muted);font-size:12px;white-space:nowrap">${formatTime(r.timestamp)}</td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load</p></div>'; }
+}
+
+// ── Admin overview ────────────────────────────────────────────────────────────
+async function loadAdminOverview() {
+  const wrap = document.getElementById('admin-table-wrap');
+  wrap.innerHTML = '<div class="empty-state"><div class="loading-spinner"></div></div>';
+  try {
+    const [histRes, usersRes] = await Promise.all([
+      fetch(`${API}/admin/history`, { headers:{Authorization:'Bearer '+token} }),
+      fetch(`${API}/admin/users`,   { headers:{Authorization:'Bearer '+token} })
+    ]);
+    const hist  = await histRes.json();
+    const users = await usersRes.json();
+    document.getElementById('a-stat-total').textContent    = hist.length;
+    document.getElementById('a-stat-users').textContent    = users.length;
+    document.getElementById('a-stat-diabetes').textContent = hist.filter(d=>d.disease==='diabetes').length;
+    document.getElementById('a-stat-heart').textContent    = hist.filter(d=>d.disease==='heart').length;
+    renderAdminPredTable(hist.slice(0,10), 'admin-table-wrap');
+  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load</p></div>'; }
+}
+
+async function loadAdminUsers() {
+  const wrap = document.getElementById('users-table-wrap');
+  wrap.innerHTML = '<div class="empty-state"><div class="loading-spinner"></div></div>';
+  try {
+    const res  = await fetch(`${API}/admin/users`, { headers:{Authorization:'Bearer '+token} });
+    const data = await res.json();
+    document.getElementById('users-count').textContent = `${data.length} user${data.length!==1?'s':''}`;
+    if (!data.length) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p>No users found</p></div>'; return; }
+    wrap.innerHTML = `<table>
+      <thead><tr><th>#</th><th>Username</th><th>Role</th><th>Total</th><th>Breakdown</th><th>Last Active</th><th>Action</th></tr></thead>
+      <tbody>${data.map(u=>`<tr>
+        <td style="color:var(--muted);font-size:12px">${u.id}</td>
+        <td><div style="display:flex;align-items:center;gap:8px">
+          <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#6366f1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">${u.username.charAt(0).toUpperCase()}</div>
+          <span style="font-weight:600">${u.username}</span>
+        </div></td>
+        <td><span class="badge badge-${u.role}">${u.role}</span></td>
+        <td><span style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700">${u.total_predictions}</span></td>
+        <td><div class="mini-stats"><span class="mini-stat d">🩸 ${u.diabetes_count||0}</span><span class="mini-stat h">❤️ ${u.heart_count||0}</span></div></td>
+        <td style="color:var(--muted);font-size:12px;white-space:nowrap">${u.last_active ? formatTime(u.last_active) : 'Never'}</td>
+        <td><button type="button" class="btn-delete" ${u.id===currentUser.id?'disabled':''} onclick="confirmDelete(${u.id},'${u.username}')">🗑️ Delete</button></td>
+      </tr>`).join('')}</tbody></table>`;
+  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load</p></div>'; }
+}
+
+async function loadAdminHistory() {
+  const wrap = document.getElementById('admin-full-table-wrap');
+  wrap.innerHTML = '<div class="empty-state"><div class="loading-spinner"></div></div>';
+  try {
+    const res  = await fetch(`${API}/admin/history`, { headers:{Authorization:'Bearer '+token} });
+    const data = await res.json();
+    renderAdminPredTable(data, 'admin-full-table-wrap');
+  } catch(e) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><p>Failed to load</p></div>'; }
+}
+
+function renderAdminPredTable(data, wrapId) {
+  const wrap = document.getElementById(wrapId);
+  if (!data.length) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No data yet</p></div>'; return; }
+  wrap.innerHTML = `<table><thead><tr><th>User</th><th>Disease</th><th>Result</th><th>Probability</th><th>Timestamp</th></tr></thead><tbody>
+    ${data.map(r=>`<tr>
+      <td style="font-weight:500">${r.username}</td>
+      <td><span class="badge badge-${r.disease}">${r.disease}</span></td>
+      <td><span class="badge ${r.prediction?'badge-pos':'badge-neg'}">${r.prediction?'Positive':'Negative'}</span></td>
+      <td>${probBar(r.probability,r.prediction)}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${formatTime(r.timestamp)}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+// ── Delete modal ──────────────────────────────────────────────────────────────
+let pendingDeleteId = null;
+function confirmDelete(userId, username) {
+  pendingDeleteId = userId;
+  document.getElementById('modal-msg').textContent = `Delete "${username}"? All their predictions will also be permanently deleted.`;
+  document.getElementById('delete-modal').classList.add('show');
+  document.getElementById('modal-confirm-btn').onclick = executeDelete;
+}
+function closeModal() { document.getElementById('delete-modal').classList.remove('show'); pendingDeleteId = null; }
+async function executeDelete() {
+  if (!pendingDeleteId) return;
+  const btn = document.getElementById('modal-confirm-btn');
+  btn.textContent = 'Deleting...'; btn.disabled = true;
+  try {
+    const res  = await fetch(`${API}/admin/users/${pendingDeleteId}`, { method:'DELETE', headers:{Authorization:'Bearer '+token} });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error, 'error'); return; }
+    showToast(data.message, 'success');
+    closeModal(); loadAdminUsers(); loadAdminOverview();
+  } catch(e) { showToast('Delete failed.', 'error'); }
+  finally { btn.textContent = 'Delete'; btn.disabled = false; }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function formatTime(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts.replace(' ','T'));
+  const pad = n => String(n).padStart(2,'0');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function probBar(prob, prediction) {
+  return `<div style="display:flex;align-items:center;gap:8px">
+    <div style="width:70px;height:4px;background:var(--bg2);border-radius:2px;overflow:hidden">
+      <div style="height:100%;width:${(prob*100).toFixed(0)}%;background:${prediction?'var(--danger)':'var(--accent3)'};border-radius:2px"></div>
+    </div>
+    <span style="font-size:12px;color:var(--muted)">${(prob*100).toFixed(1)}%</span>
+  </div>`;
+}
+
+// ── Button loading state ──────────────────────────────────────────────────────
+function setButtonLoading(prefix, loading, color) {
+  const btn  = document.getElementById(prefix + '-btn');
+  const span = document.getElementById(prefix + '-btn-text');
+  btn.disabled = loading;
+  span.innerHTML = loading
+    ? '<span class="loading-spinner" style="width:16px;height:16px;border-width:2px;vertical-align:middle;display:inline-block"></span> Analyzing...'
+    : 'Analyze Risk →';
+}
+
+// ── Diabetes prediction ───────────────────────────────────────────────────────
+async function predictDiabetes() {
+  const ids  = ['d-preg','d-glucose','d-bp','d-skin','d-insulin','d-bmi','d-dpf','d-age'];
+  const vals = ids.map(id => parseFloat(document.getElementById(id).value));
+  if (vals.some(v => isNaN(v))) { showToast('Please fill in all fields.', 'error'); return; }
+
+  setButtonLoading('d', true);
+  try {
+    const res  = await fetch(`${API}/predict/diabetes`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+      body: JSON.stringify({input: vals})
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Prediction failed', 'error'); return; }
+    lastPredictPage = 'diabetes';
+    showResultPage(data.prediction, data.probability, 'diabetes');
+  } catch(e) {
+    showToast('Connection error — is Flask running?', 'error');
+  } finally {
+    setButtonLoading('d', false);
+  }
+}
+
+// ── Heart prediction ──────────────────────────────────────────────────────────
+async function predictHeart() {
+  const age     = document.getElementById('h-age').value;
+  const rbp     = document.getElementById('h-rbp').value;
+  const chol    = document.getElementById('h-chol').value;
+  const hr      = document.getElementById('h-hr').value;
+  const oldpeak = document.getElementById('h-oldpeak').value;
+  if (!age||!rbp||!chol||!hr||oldpeak==='') { showToast('Please fill in all numeric fields.','error'); return; }
+  const payload = {
+    age:parseInt(age), sex:document.getElementById('h-sex').value,
+    chest_pain:document.getElementById('h-cp').value,
+    resting_bp:parseInt(rbp), cholesterol:parseInt(chol),
+    fasting_bs:parseInt(document.getElementById('h-fbs').value),
+    resting_ecg:document.getElementById('h-ecg').value,
+    max_hr:parseInt(hr), exercise_angina:document.getElementById('h-angina').value,
+    oldpeak:parseFloat(oldpeak), st_slope:document.getElementById('h-slope').value,
+  };
+
+  setButtonLoading('h', true);
+  try {
+    const res  = await fetch(`${API}/predict/heart`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Prediction failed', 'error'); return; }
+    lastPredictPage = 'heart';
+    showResultPage(data.prediction, data.probability, 'heart');
+  } catch(e) {
+    showToast('Connection error — is Flask running?', 'error');
+  } finally {
+    setButtonLoading('h', false);
+  }
+}
+</script>
+</body>
+</html>
